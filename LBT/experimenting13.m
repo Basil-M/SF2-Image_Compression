@@ -194,12 +194,12 @@ Y = lbt_justenc(X, N, s);
 en = dct_energies(Y,N); % energy of each sub image
 en = en/sum(en(:)); % normalized by the total energy
 q_ratio = 1./sqrt(en); % q ratios are inversely proportional to the square root of the energies
+q_ratio = q_ratio./q_ratio(N,N) % normalising the q_ratios
+q = quantratio1(Y, 0, q_ratio, N, rise1);
 
-q = quantratio1(Y, 0.25, q_ratio, N, rise1);
+z = quantratio2(q, q_ratio, N, 0, rise1);
 
-z = quantratio2(q, q_ratio, N, 0.25, rise1);
-
-dctbpp(regroup(z,N)/N, 16);
+dctbpp(regroup(z,N)/N, 16)
 
 Z = lbt_dec(z, N, s);
 
