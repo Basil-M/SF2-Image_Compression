@@ -53,12 +53,9 @@ else
     %Xr = dwt_dec(vlc, N_LEVELS, M, Q*dwt_q_ratios_X(X, N_LEVELS), rise,N_LBT, bits, huffval, dcbits, size(X,1), size(X,2));
 
     nbits = jpegbits(vlc, opthuff, true);
-
-    if N_LBT > 0
-        ssim_r = ssim(Xr, X - 128);
-    else
-        ssim_r = ssim(Xr, X);
-    end
+    
+    ssim_r = max([ssim(Xr, X), ssim(Xr, X - 128), ssim(Xr, X + 128)]);
+    
 end
 end
 

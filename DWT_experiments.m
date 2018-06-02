@@ -109,3 +109,31 @@ hold on;
 plot(S_MAT(2,:));
 ylabel('SSIM')
 xlabel('Number of levels')
+
+%% INVESTIGATING RISE
+rises = 0.1:0.05:1.5;
+S_MAT = -Inf*ones([1,length(rises)]);
+Q_MAT = -Inf*ones([1,length(rises)]);
+i = 1;
+for r = rises
+   [S_MAT(i),~,~, Q_MAT(i), ~] = dwt_opt_enc(X,7, -1, r);
+   i = i + 1;
+end
+
+plot(rises,S_MAT);
+ylabel('SSIM value');
+yyaxis right;
+plot(rises,Q_MAT);
+ylabel('Optimal Q');
+xlabel('Rise');
+%% Experiment with resizing
+scl = 1:0.2:2;
+S_MAT = -Inf*ones([1, length(scl)]);
+Q_MAT = S_MAT;
+i = 1;
+for sc = scl
+    [~, ~,  X_rec, Q_MAT(i),~] = dwt_opt_enc(imresize(X, sc), 7);
+    X_rec = imresize(X_rec, size(X,1)/size(X_rec,1));
+    S_MAT(i) = ssim(X_rec, X);
+    i = i + 1;
+end
