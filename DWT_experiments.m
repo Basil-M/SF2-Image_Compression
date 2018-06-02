@@ -48,3 +48,25 @@ yticklabels({'1','2','4','8','16','32','64','128','256'});
 xlabel('Number of levels')
 xticks(1:7);
 zlabel('SSIM')
+
+%% Different filters
+dwtmode('per');
+wname = 'bior4.4';
+q0 = 0.000000001;
+Y = dwt_f(X, 4, wname);
+C = Y{1};
+mu_C = mean(C);
+std_C = std(C);
+C = (C - mu_C)/std_C;
+Y{1} = C;
+
+q_rf = dwt_q_ratios_f(Y, wname);
+Yq1 = dwtquant1_f(Y, q0*q_rf, 1);
+Yq2 = dwtquant2_f(Y, q0*q_rf, 1);
+C = Yq2{1};
+C = std_C*C + mu_C;
+Yq2{1} = C;
+Xq = idwt_f(Yq2, wname);
+ssim(Xq,X);
+
+%% Seperate approach for high and low frequencies
