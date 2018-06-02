@@ -1,4 +1,4 @@
-function [vlc, bits, huffval] = dwt_enc(X,N_LEVELS, M,q0,rise, N_sup,opthuff, dcbits)
+function [vlc, bits, huffval] = dwt_enc(X,N_LEVELS, M,q0,rise, N_sup,N_LBT, opthuff, dcbits)
     
 % DWT_ENC Encodes an image to a (simplified) JPEG bit stream
 %
@@ -46,6 +46,9 @@ if ~exist('N_sup','var')
     N_sup = -1;
 end
 
+if ~exist('N_LBT','var')
+    N_LBT = -1;
+end
 % make it zero mean
 %if sum(X(:) > 128) ~= 0; X  = X - 128; end
 %if ((opthuff==true) && (nargout==1)) error('Must output bits and huffval if optimising huffman tables'); end
@@ -57,11 +60,18 @@ Y = nlevdwt(X, N_LEVELS);
 if N_sup > 0
     Y = dwt_suppress(Y, N_LEVELS, N_sup);
 end
-%threshold
+q_rats = dwt_q_ratios(size(Y),N_LEVELS);
+
+if N_LBT > 0
+    q_rats(1,N_LEVELS+1) = q_rats(1,N_LEVELS+1);
+    m_lbt = length(Y)/2^N_LEVELS;
+    q_lbt = q0*q_rats(1, N_LEVELS+1);
+    Y(1:m_lbt, 1:m_lbt) = lbt_enc(Y(1:m_lbt, 1:m_lbt), 4, q_lbt, sqrt(2), rise);
+end
 
 % Quantise to integers.
 %fprintf(1, 'Quantising DWT', q0); 
-Yq=dwtquant1(Y,N_LEVELS, q0*dwt_q_ratios(size(Y),N_LEVELS),rise);
+Yq=dwtquant1(Y,N_LEVELS, q0*q_rats,rise);
 
 % reshuffle to look like DCT
 %fprintf(1, 'Regrouping %i level DWT to look like %i x %i DCT', N_LEVELS, N, N);

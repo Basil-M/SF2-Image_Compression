@@ -1,4 +1,4 @@
-function Z = dwt_dec(vlc, N_LEVELS,M, q0,rise,bits, huffval, dcbits, W, H)
+function Z = dwt_dec(vlc, N_LEVELS,M, q0,rise,N_LBT, bits, huffval, dcbits, W, H)
 
 % JPEGDEC Decodes a (simplified) JPEG bit stream to an image
 %
@@ -20,7 +20,7 @@ function Z = dwt_dec(vlc, N_LEVELS,M, q0,rise,bits, huffval, dcbits, W, H)
 %  Z is the output greyscale image
 
 % Presume some default values if they have not been provided
-
+dwt_scan = false;
 opthuff = exist('bits','var')&exist('huffval','var');
 if ~exist('H','var') || ~exist('W','var')
     H = 256; W = 256;
@@ -39,7 +39,11 @@ end
 if (mod(M, N_DCT)~=0) error('Encoding width must be an integer multiple of 2^N_LEVELS'); end
 
 % Set up standard scan sequence
-scan = diagscan(M);
+if dwt_scan
+    scan = dwtscan(W, N_LEVELS);
+else
+    scan = diagscan(M);
+end
 
 if (opthuff)
   %disp('Generating huffcode and ehuf using custom tables')
@@ -48,6 +52,7 @@ else
   [bits, huffval] = huffdflt(1);
 end
 % Define starting addresses of each new code length in huffcode.
+bits = bits(:);
 huffstart=cumsum([1; bits(1:15)]);
 % Set up huffman coding arrays.
 [huffcode, ehuf] = huffgen(bits, huffval);
@@ -121,17 +126,32 @@ end
 
 q = q0*dwt_q_ratios(size(Zq), N_LEVELS);
 
+if N_LBT > -1
+    q(1,N_LEVELS+1) = q(1,N_LEVELS+1)*1;
+end
+
 if ~exist('rise')
     rise = 1;
 end
 
-fprintf(1, 'Unregrouping DWT\n');
-Zq = dwtgroup(Zq, -1*N_LEVELS);
+if(~dwt_scan)
+    fprintf(1, 'Unregrouping DWT\n');
+    Zq = dwtgroup(Zq, -1*N_LEVELS);
+end
 fprintf('Inverse quantising the DWT');
 Zi=dwtquant2(Zq,N_LEVELS,q, rise);  
 
 
 fprintf(1, 'Inverse %i level DWT\n', N_LEVELS);
+
+
+if N_LBT > -1
+    disp('Inverse LBT on lowpass component');
+    m_lbt = length(Zq)/2^N_LEVELS;
+    Zi(1:m_lbt, 1:m_lbt) = lbt_dec(Zi(1:m_lbt, 1:m_lbt), 4, sqrt(2));
+end
+
+
 Z = nlevidwt(Zi, N_LEVELS);
 
 %if(sum(Z(:) > 128)) == 0
