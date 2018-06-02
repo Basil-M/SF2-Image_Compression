@@ -43,6 +43,7 @@ for n = 1:7
 end
 
 surf(S_MAT);
+
 ylabel('Encoding width')
 yticks(1:7);
 yticklabels({'1','2','4','8','16','32','64','128','256'});
@@ -54,6 +55,19 @@ zlabel('SSIM')
 %in this case, 5|5?
 [s,n,xr,q,vlc] = dwt_opt_enc(X,5);
 draw(xr);
+
+%% INVESTIGATING SUB-IMAGE WIDTH
+
+S_MAT = -Inf*ones([7,1]);
+for n = 1:7
+    [S_MAT(n),~,~,~,~] = dwt_opt_enc(X, n);
+end
+
+plot(S_MAT);
+
+ylabel('SSIM')
+xlabel('Number of levels')
+xticks(1:7);
 %% Different filters
 dwtmode('per');
 wname = 'bior4.4';
@@ -85,7 +99,7 @@ F = reshape(F, 2*f2+1, 2*f2+1);
 
 x_lp = conv2(X, F, 'same');
 x_hp = x_lp;
-[s,n,xr,q,vlc] = dwt_opt_enc(X,5);
+[s,n,xr,q,vlc] = dwt_opt_enc(X,7);
 [~, ssimMap] = ssim(X, xr);
 
 s_draw = ssimMap - min(ssimMap(:));

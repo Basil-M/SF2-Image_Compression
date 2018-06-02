@@ -1,4 +1,4 @@
-function [ssim_r, nbits, Xr, Q, vlc] = dwt_opt_enc(X, N_LEVELS, M, rise, N_sup, wname, opthuff, dcbits)
+function [ssim_r, nbits, Xr, Q, vlc] = dwt_opt_enc(X, N_LEVELS, M, rise, N_sup, N_LBT, opthuff, dcbits)
 %DWT_OPT_ENC Optimises Q and returns encoded dwt in one (for convenience!)
 %dwt_opt_enc(X, 7,-1,-1,-1,'haar')
 if ~exist('rise','var')
@@ -31,8 +31,13 @@ end
 if ~exist('dcbits','var')
     dcbits =16;
 end
+
+if ~exist('N_LBT','var')
+    N_LBT = 0;
+end
+
 fprintf('Optimising q for N = %i, M = %i, rise = %0.2f, N_sup=%i\n',N_LEVELS, M, rise, N_sup);
-Q = dwt_jpeg_q(X, N_LEVELS, M, rise, N_sup, opthuff);
+Q = dwt_jpeg_q(X, N_LEVELS, M, rise, N_sup,N_LBT, opthuff);
 if(Q == -1)
     Xr = [];
     nbits = [];
@@ -42,9 +47,9 @@ if(Q == -1)
     huffval = [];
 else
     fprintf('Final encoding with optimal q0 = %0.2f\n',Q);
-    [vlc, bits, huffval] = dwt_enc(X, N_LEVELS, M, Q, rise, N_sup,opthuff, dcbits);
+    [vlc, bits, huffval] = dwt_enc(X, N_LEVELS, M, Q, rise, N_sup,N_LBT, opthuff, dcbits);
 
-    Xr = dwt_dec(vlc, N_LEVELS, M, Q, rise, bits, huffval, dcbits, size(X,1), size(X,2));
+    Xr = dwt_dec(vlc, N_LEVELS, M, Q, rise,N_LBT, bits, huffval, dcbits, size(X,1), size(X,2));
 
     nbits = jpegbits(vlc, opthuff, true);
 

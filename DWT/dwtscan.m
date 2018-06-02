@@ -8,30 +8,34 @@ function [scan] = dwtscan(S,N)
 %  The first entry in the matrix is assumed to be the DC coefficient
 %  and is therefore not included in the scan
 v = @(row,col) S*(row-1) + col; %convert (r,c) into column vector
-
-s2 = S/2;
+S_c = S;
+s2 = S_c/2;
 %start from top left corner of vertical component
 scan = [];
 %vertical scan
 for i = 1:N
-    for c = (1+s2):S
+    for c = (1+s2):S_c
         for r = 1:s2
             scan = [scan v(r,c)];
         end
     end
     %horizontal scan
-    for r = (1+s2):S
+    for r = (1+s2):S_c
         for c = 1:s2
             scan = [scan v(r,c)];
         end
     end
     %diagonal scan on diagonal details
     scan_diag = [1 diagscan(s2)];
-    rs = ceil(scan_diag/s2);
-    scan_diag = s2*S + rs*s2 + scan_diag;
+    s_convert = s2*S + s2;      %coordinates of start point of this sub square
+                                %in global square
+    
+    rs = ceil(scan_diag/s2)-1;   %number of rows from that start point of each point
+    
+    scan_diag = rs*(S - s2) + s_convert + scan_diag;
     scan = [scan scan_diag];
     
-    S = S/2;
+    S_c = S_c/2;
     s2 = s2/2;
 end
 end
