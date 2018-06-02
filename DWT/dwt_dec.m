@@ -169,7 +169,11 @@ else
         end
 end
 
-q = q0*dwt_q_ratios(size(Zq), N_LEVELS);
+if isscalar(q0)
+    q = q0*dwt_q_ratios(size(Zq), N_LEVELS);
+else
+    q = q0;
+end
 
 if N_LBT > -1
     q(1,N_LEVELS+1) = q(1,N_LEVELS+1)*1;
@@ -194,7 +198,8 @@ if N_LBT > 0
     disp('Inverse LBT on lowpass component');
     m_lbt = length(Zq)/2^N_LEVELS;
     q_lbt = q(1, N_LEVELS+1);
-    Zi(1:m_lbt, 1:m_lbt) = lbt_dec(Zi(1:m_lbt, 1:m_lbt), 4, sqrt(2));
+    N_LBT = min(m_lbt, 4);
+    Zi(1:m_lbt, 1:m_lbt) = lbt_dec(Zi(1:m_lbt, 1:m_lbt), N_LBT, sqrt(2));
 end
 
 

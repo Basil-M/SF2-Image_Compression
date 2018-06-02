@@ -60,18 +60,26 @@ Y = nlevdwt(X, N_LEVELS);
 if N_sup > 0
     Y = dwt_suppress(Y, N_LEVELS, N_sup);
 end
-q_rats = dwt_q_ratios(size(Y),N_LEVELS);
+
+%q = q0*dwt_q_ratios_X(X, N_LEVELS);
+% if isscalar(q0)
+   q = q0*dwt_q_ratios(size(Y),N_LEVELS);
+% else
+%    q = q0;
+% end
 
 if N_LBT > 0
-    q_rats(1,N_LEVELS+1) = q_rats(1,N_LEVELS+1);
+    q(1,N_LEVELS+1) = q(1,N_LEVELS+1);
     m_lbt = length(Y)/2^N_LEVELS;
-    q_lbt = q0*q_rats(1, N_LEVELS+1);
-    Y(1:m_lbt, 1:m_lbt) = lbt_enc(Y(1:m_lbt, 1:m_lbt), 4, q_lbt, sqrt(2), rise);
+    q_lbt = q(1, N_LEVELS+1);
+    N_LBT = min(m_lbt, 4);
+    Y(1:m_lbt, 1:m_lbt) = lbt_enc(Y(1:m_lbt, 1:m_lbt), N_LBT, q_lbt, sqrt(2), rise);
 end
 
 % Quantise to integers.
 %fprintf(1, 'Quantising DWT', q0); 
-Yq=dwtquant1(Y,N_LEVELS, q0*q_rats,rise);
+
+Yq=dwtquant1(Y,N_LEVELS, q,rise);
 
 % reshuffle to look like DCT
 %fprintf(1, 'Regrouping %i level DWT to look like %i x %i DCT', N_LEVELS, N, N);

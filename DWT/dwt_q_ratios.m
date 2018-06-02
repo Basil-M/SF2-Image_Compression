@@ -36,6 +36,6 @@ X_t = nlevidwt(Y, N);
 E_ki(1, N + 1) = E(X_t)/E_imp^2;
 dwtstep = 1./sqrt(E_ki);
 dwtstep = dwtstep/dwtstep(1,1); %normalise
-E_ki(1, N + 1) = 0;
+%E_ki(1, N + 1) = 0;
 end
 
