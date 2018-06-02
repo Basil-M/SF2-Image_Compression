@@ -20,7 +20,9 @@ for i = 3:length(fol_inf)
     end    
     for k = 3:k_max
         f_name{m} = ['IMAGE_TESTING/IMAGES/' fol_inf(i).name '/' p(k).name];
-        output(m,:, :) = en(image_reader(f_name{m}));
+        e_m = en(image_reader(f_name{m}));
+        e_m = log(e_m/e_m(1,1));
+        output(m,:, :) = e_m;%en(image_reader(f_name{m}));
         m = m + 1;
     end
 end

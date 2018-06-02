@@ -50,10 +50,15 @@ else
     [vlc, bits, huffval] = dwt_enc(X, N_LEVELS, M, Q, rise, N_sup,N_LBT, opthuff, dcbits);
 
     Xr = dwt_dec(vlc, N_LEVELS, M, Q, rise,N_LBT, bits, huffval, dcbits, size(X,1), size(X,2));
+    %Xr = dwt_dec(vlc, N_LEVELS, M, Q*dwt_q_ratios_X(X, N_LEVELS), rise,N_LBT, bits, huffval, dcbits, size(X,1), size(X,2));
 
     nbits = jpegbits(vlc, opthuff, true);
 
-    ssim_r = ssim(Xr, X);
+    if N_LBT > 0
+        ssim_r = ssim(Xr, X - 128);
+    else
+        ssim_r = ssim(Xr, X);
+    end
 end
 end
 

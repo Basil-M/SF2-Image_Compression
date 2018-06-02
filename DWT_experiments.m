@@ -56,18 +56,7 @@ zlabel('SSIM')
 [s,n,xr,q,vlc] = dwt_opt_enc(X,5);
 draw(xr);
 
-%% INVESTIGATING SUB-IMAGE WIDTH
 
-S_MAT = -Inf*ones([7,1]);
-for n = 1:7
-    [S_MAT(n),~,~,~,~] = dwt_opt_enc(X, n);
-end
-
-plot(S_MAT);
-
-ylabel('SSIM')
-xlabel('Number of levels')
-xticks(1:7);
 %% Different filters
 dwtmode('per');
 wname = 'bior4.4';
@@ -106,3 +95,17 @@ s_draw = ssimMap - min(ssimMap(:));
 s_draw = s_draw/max(s_draw(:));
 x_draw = x_hp - min(x_hp(:));
 s_draw = s_draw*max(x_draw(:));
+
+%% INVESTIGATING USING LBT
+
+S_MAT = -Inf*ones([2,7]);
+for n = 1:7
+    [S_MAT(1,n),~,~,~,~] = dwt_opt_enc(X, n);
+    [S_MAT(2,n),~,~,~,~] = dwt_opt_enc(X, n, -1, 1, 0, 1);
+end
+
+plot(S_MAT(1,:));
+hold on;
+plot(S_MAT(2,:));
+ylabel('SSIM')
+xlabel('Number of levels')
