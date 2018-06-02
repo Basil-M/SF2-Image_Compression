@@ -1,4 +1,4 @@
-%% experimenting with different schemes for final scheme
+%{
 %% Optimal parameters
 % DCT
 N_dct = 8; N_enc_dct = 8;
@@ -52,7 +52,7 @@ Yr = regroup(Y, N)/N;
 figure(2);
 draw(Yr);
 Yrdc = Yr(1:lmax+1, 1:kmax+1);
-draw(Yrdc);
+%draw(Yrdc);
 rmsError = std(Yrdc(:)-A(:))
 
 %% 3 level lbt
@@ -62,7 +62,7 @@ N = 4;
 s = sqrt(2);
 
 Y = lbt_justenc(X-128, N, s);
-% performing a 2 level lbt
+% performing a 3 level lbt
 
 A = 0;
 
@@ -76,11 +76,22 @@ A = Y(1:4:256, 1:4:256)/N;
     % put in if statement here so can make the third level optional.
     % pick out dc coefficients of 2nd level
     C = B(1:4:64, 1:4:64)/N;
-
+    draw(C);
     % encode the dc coefficients 
     D = lbt_justenc(C, N, s);
 
-    B(1:4:64,1:4:64) = C;
+    
+    %{
+    C1 = lbt_dec(D,N,s);
+    B1(1:4:64, 1:4:64) = C1*N;
+    A1 = lbt_dec(B, N, s);
+    Y(1:4:256,1:4:256) = A1*N;
+    X1 = lbt_dec(Y, N, s);
+    draw(X1);
+    std(X(:)-X1(:))
+    %}
+
+    B(1:4:64,1:4:64) = D;
 
 
 Y(1:4:256, 1:4:256) = B;
@@ -90,11 +101,111 @@ Zi = Y;
 % add in if statement for this
     % decode the encoded 2nd level dc coefficients
     Zj = Zi(1:4:256, 1:4:256);
-    Zj(1:4:64,1:4:64) = lbt_dec(Zj(1:4:64,1:4:64),N,s)*N;
-    Zi(1:4:256, 1:4:256) = Zj;
+    
+    %Zj(1:4:64,1:4:64) = lbt_dec(Zj(1:4:64,1:4:64),N,s)*N;
+    Zi(1:16:256,1:16:256)=lbt_dec(Zi(1:16:256,1:16:256),N,s)*N;
+    %Zi(1:4:256, 1:4:256) = Zj;
 % decode the encoded dc coefficients (with a 2Nx2N dct block if you put 2*N
 % into lbt_dec)
 Zi(1:4:256, 1:4:256) = lbt_dec(Zi(1:4:256, 1:4:256), N, s)*N;
 
 Z = lbt_dec(Zi, N, s);
+
+%% different levels of ratio between the quantisation of the first level of the lbt and the 2nd level of the lbt.
+%% currently no quantisation is being used for the 3rd level of the lbt
+N = 4;
+M= 16;
+rise1 = 1;
+s = sqrt(2);
+
+
+i=1;
+ssimval1=0;
+ssimval2=0;
+for ratio=0.05:0.05:0.5
+    load lighthouse;
+    [ssimval1(i), ~, Z1, ~] = jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio);
+    load bridge;
+    [ssimval2(i), ~, Z2, ~] = jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio);
+    i = i+1;
+end
+
+
+
+%% This didn't work 
+evalc(' ssimval = @(ratio)jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio); ratio_opt = fminsearch(ssimval, 0.2);');
+%%
+plot(0.05:0.05:0.5, ssimval);
+xlabel('Ratio of quantisation'); % for the 1st level of lbt to the 2nd level of lbt
+ylabel('ssim value');
+
+%% Using the bridge image and taking the ratio which gave the optimum value (0.3). Testing the best ratio for the 3rd level
+
+load bridge;
+N = 4;
+M= 16;
+rise1 = 1;
+s = sqrt(2);
+ratio = 0.3;
+i=1;
+ssimval =0;
+for ratio2=0:0.05:0.5
+    [ssimval2(i), rmsError2, Z2, q_opt2] = jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio, ratio2);
+    i = i+1;
+end
+
+%% 
+plot(0:0.05:0.5, ssimval);
+xlabel('Ratio of quantisation'); % for the 1st level of lbt to the 2nd level of lbt
+ylabel('ssim value');
+
+%% Equal energy for one level of lbt - basing the quantisation on the image itself
+% for a lbt using a 4x4 dct transform, there will be 16 subimages.
+N=4;
+
+energy = 0;
+
+for i=1:4
+    for j=1:4
+        Xsub = X(i:N:256,j:N:256);
+        energy(i,j) = sum(Xsub(:).^2);
+    end
+end 
+energy = energy/sum(energy(:));
+
+en = dct_energies(X, N);
+en = en/sum(en(:)); 
+
+std(en(:)-energy(:))
+%}
+%% 
+N = 4;
+s = sqrt(2);
+step = 17;
+rise1 = 1;
+
+
+
+
+
+
+Y = lbt_justenc(X, N, s);
+
+en = dct_energies(Y,N); % energy of each sub image
+en = en/sum(en(:)); % normalized by the total energy
+q_ratio = 1./sqrt(en); % q ratios are inversely proportional to the square root of the energies
+q_ratio = q_ratio./q_ratio(N,N) % normalising the q_ratios
+q = quantratio1(Y, 0, q_ratio, N, rise1);
+
+z = quantratio2(q, q_ratio, N, 0, rise1);
+
+dctbpp(regroup(z,N)/N, 16)
+
+Z = lbt_dec(z, N, s);
+
+draw(Z);
+
+
+
+
 

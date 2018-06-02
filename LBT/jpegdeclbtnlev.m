@@ -1,4 +1,4 @@
-function Z = jpegdeclbtnlev(vlc, qstep, N, M, rise1, s, bits, huffval, dcbits, W, H)
+function Z = jpegdeclbtnlev(vlc, qstep, N, M, rise1, s, bits, huffval, dcbits, ratio, ratio2, W, H)
 % performing a multi level lbt
 
 % JPEGDEC Decodes a (simplified) JPEG bit stream to an image
@@ -17,37 +17,44 @@ function Z = jpegdeclbtnlev(vlc, qstep, N, M, rise1, s, bits, huffval, dcbits, W
 %  of the data, otherwise default tables are used
 %  dcbits determines how many bits are used to decode the DC coefficients
 %  of the DCT (defaults to 8)
+%  ratio is the ratio between the 1st level of the lbt and the second level
 %  W and H determine the size of the image (defaults to 256 x 256)
 %
 %  Z is the output greyscale image
 
 % Presume some default values if they have not been provided
-error(nargchk(2, 10, nargin, 'struct'));
+error(nargchk(2, 13, nargin, 'struct'));
 opthuff = true;
-if (nargin<11)
+if (nargin<13)
   H = 256;
   W = 256;
-  if (nargin<9)
-    dcbits = 16; % changed
-    if (nargin<8)
-      opthuff = false;
-      if(nargin<6)
-          s = sqrt(2);
-          if(nargin<5)
-              rise1 = 1;
-              if (nargin<4)
-                if (nargin<3)
-                  N = 8;
-                  M = 8;
-                else
-                  M = N;
-                end
-              else 
-                if (mod(M, N)~=0) error('M must be an integer multiple of N'); end
+    if(nargin<11)
+        ratio2 = 0;
+      if(nargin<10)
+          ratio=1;
+          if (nargin<9)
+            dcbits = 16; % changed
+            if (nargin<8)
+              opthuff = false;
+              if(nargin<6)
+                  s = sqrt(2);
+                  if(nargin<5)
+                      rise1 = 1;
+                      if (nargin<4)
+                        if (nargin<3)
+                          N = 8;
+                          M = 8;
+                        else
+                          M = N;
+                        end
+                      else 
+                        if (mod(M, N)~=0) error('M must be an integer multiple of N'); end
+                      end
+                  end
               end
+            end
           end
-      end
-    end
+     end
   end
 end
 
@@ -135,13 +142,15 @@ fprintf(1, 'Inverse quantising to step size of %i\n', qstep);
 %Work out how to remove the quantisation when I'm quantising each bit
 %separately
 Zi=quant2(Zq,qstep,rise1*qstep);
-Zi(1:4:256, 1:4:256)=quant2(Zq(1:4:256, 1:4:256),0.25*qstep, 0.25*qstep*rise1);
+Zi(1:4:256, 1:4:256)=quant2(Zq(1:4:256, 1:4:256),ratio*qstep, ratio*qstep*rise1);
+Zi(1:16:256, 1:16:256) = quant2(Zq(1:16:256,1:16:256),ratio2*ratio*qstep,ratio2*ratio*qstep*rise1);
 
 % add in if statement for this
     % decode the encoded 2nd level dc coefficients
     Zj = Zi(1:4:256, 1:4:256);
     Zj(1:4:64,1:4:64) = lbt_dec(Zj(1:4:64,1:4:64),N,s)*N;
     Zi(1:4:256, 1:4:256) = Zj;
+    
 % decode the encoded dc coefficients (with a 2Nx2N dct block if you put 2*N
 % into lbt_dec)
 Zi(1:4:256, 1:4:256) = lbt_dec(Zi(1:4:256, 1:4:256), N, s)*N;
