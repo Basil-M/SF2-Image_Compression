@@ -6,7 +6,7 @@ function Y = dwtquant2(Yq, N, dwtstep, rise)
 %  step rises at rise1, otherwise it rises at step/2 to give a uniform
 %  quantiser with a step centred on zero.
 %  In any case the quantiser is symmetrical about zero.
-if length(dwtstep) == N + 2
+if size(dwtstep,2) == N + 2
     %rise parameter has been added at the end
     rise = dwtstep(1, N + 2);
     dwtstep = dwtstep(:,1:N+1);

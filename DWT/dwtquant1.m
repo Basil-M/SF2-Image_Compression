@@ -14,7 +14,7 @@ function Yq = dwtquant1(Y, N, dwtstep, rise)
 % Quantisation steps top to bottom, left to right so:
 %  | ~     k = 1|
 %  |k = 2  k = 3|
-if length(dwtstep) == N + 2
+if size(dwtstep,2) == N + 2
     %rise parameter has been added at the end
     rise = dwtstep(1, N + 2);
     dwtstep = dwtstep(:,1:N+1);

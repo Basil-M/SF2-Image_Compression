@@ -18,20 +18,24 @@ precision = 4;
 targ = 40960;
 step = 1;
 %initialisation
-while(nbits(q_cur) > targ)
+while(nbits(q_cur) > targ) && (q_cur < 256)
     q_cur = q_cur + 10;
 end
 
+if(q_cur == 260)
+    disp('Could not optimise q for these parameters - optimal q-step too large.\n');
+    q_opt = -1;
+else
+    for p = 1:precision
+       while nbits(q_cur) < targ
+        q_cur = q_cur - step;
+       end
+       q_cur = q_cur + step;
+       step = step/10; 
+    end
 
-for p = 1:precision
-   while nbits(q_cur) < targ
-    q_cur = q_cur - step;
-   end
-   q_cur = q_cur + step;
-   step = step/10; 
+    q_opt = q_cur + step;
 end
-
-q_opt = q_cur + step;
 end
 
 

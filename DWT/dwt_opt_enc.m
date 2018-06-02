@@ -31,15 +31,24 @@ end
 if ~exist('dcbits','var')
     dcbits =16;
 end
-
+fprintf('Optimising q for N = %i, M = %i, rise = %0.2f, N_sup=%i\n',N_LEVELS, M, rise, N_sup);
 Q = dwt_jpeg_q(X, N_LEVELS, M, rise, N_sup, opthuff);
+if(Q == -1)
+    Xr = [];
+    nbits = [];
+    ssim_r = -Inf;
+    vlc = [];
+    bits = [];
+    huffval = [];
+else
+    fprintf('Final encoding with optimal q0 = %0.2f\n',Q);
+    [vlc, bits, huffval] = dwt_enc(X, N_LEVELS, M, Q, rise, N_sup,opthuff, dcbits);
 
-[vlc, bits, huffval] = dwt_enc(X, N_LEVELS, M, Q, rise, N_sup,opthuff, dcbits);
+    Xr = dwt_dec(vlc, N_LEVELS, M, Q, rise, bits, huffval, dcbits, size(X,1), size(X,2));
 
-Xr = dwt_dec(vlc, N_LEVELS, M, Q, rise, bits, huffval, dcbits, size(X,1), size(X,2));
+    nbits = jpegbits(vlc, opthuff, true);
 
-nbits = jpegbits(vlc, opthuff, true);
-
-ssim_r = ssim(Xr, X);
+    ssim_r = ssim(Xr, X);
+end
 end
 

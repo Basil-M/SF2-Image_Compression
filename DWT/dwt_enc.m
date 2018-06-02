@@ -51,7 +51,7 @@ end
 %if ((opthuff==true) && (nargout==1)) error('Must output bits and huffval if optimising huffman tables'); end
 N = 2^N_LEVELS;
 % DWT on input image X.
-fprintf(1, 'Forward %i level DWT\n', N_LEVELS);
+%fprintf(1, 'Forward %i level DWT\n', N_LEVELS);
 Y = nlevdwt(X, N_LEVELS);
 
 if N_sup > 0
@@ -60,23 +60,23 @@ end
 %threshold
 
 % Quantise to integers.
-fprintf(1, 'Quantising DWT', q0); 
+%fprintf(1, 'Quantising DWT', q0); 
 Yq=dwtquant1(Y,N_LEVELS, q0*dwt_q_ratios(size(Y),N_LEVELS),rise);
 
 % reshuffle to look like DCT
-fprintf(1, 'Regrouping %i level DWT to look like %i x %i DCT', N_LEVELS, N, N);
+%fprintf(1, 'Regrouping %i level DWT to look like %i x %i DCT', N_LEVELS, N, N);
 Yq = dwtgroup(Yq, N_LEVELS);
 % Generate zig-zag scan of AC coefs.
 scan = diagscan(M);
 
 % On the first pass use default huffman tables.
-disp('Generating huffcode and ehuf using default tables')
+%disp('Generating huffcode and ehuf using default tables')
 [dbits, dhuffval] = huffdflt(1);  % Default tables.
 [huffcode, ehuf] = huffgen(dbits, dhuffval);
 
 % Generate run/ampl values and code them into vlc(:,1:2).
 % Also generate a histogram of code symbols.
-disp('Coding rows')
+%disp('Coding rows')
 sy=size(Yq);
 t = 1:M;
 huffhist = zeros(16*16,1);
@@ -107,18 +107,18 @@ if (opthuff==false)
     bits = dbits;
     huffval = dhuffval;
   end
-  fprintf(1,'Bits for coded image = %d\n', sum(vlc(:,2)));
+  %fprintf(1,'Bits for coded image = %d\n', sum(vlc(:,2)));
   return;
 end
 
 % Design custom huffman tables.
-disp('Generating huffcode and ehuf using custom tables')
+%disp('Generating huffcode and ehuf using custom tables')
 [dbits, dhuffval] = huffdes(huffhist);
 [huffcode, ehuf] = huffgen(dbits, dhuffval);
 
 % Generate run/ampl values and code them into vlc(:,1:2).
 % Also generate a histogram of code symbols.
-disp('Coding rows (second pass)')
+%disp('Coding rows (second pass)')
 t = 1:M;
 huffhist = zeros(16*16,1);
 vlc = [];
@@ -137,8 +137,8 @@ for r=0:M:(sy(1)-M),
   end
   vlc = [vlc; vlc1];
 end
-fprintf(1,'Bits for coded image = %d\n', sum(vlc(:,2)))
-fprintf(1,'Bits for huffman table = %d\n', (16+max(size(dhuffval)))*8)
+%fprintf(1,'Bits for coded image = %d\n', sum(vlc(:,2)))
+%fprintf(1,'Bits for huffman table = %d\n', (16+max(size(dhuffval)))*8)
 
 if (nargout>1)
   bits = dbits;

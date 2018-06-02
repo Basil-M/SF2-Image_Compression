@@ -42,9 +42,9 @@ if (mod(M, N_DCT)~=0) error('Encoding width must be an integer multiple of 2^N_L
 scan = diagscan(M);
 
 if (opthuff)
-  disp('Generating huffcode and ehuf using custom tables')
+  %disp('Generating huffcode and ehuf using custom tables')
 else
-  disp('Generating huffcode and ehuf using default tables')
+  %disp('Generating huffcode and ehuf using default tables')
   [bits, huffval] = huffdflt(1);
 end
 % Define starting addresses of each new code length in huffcode.
@@ -69,7 +69,7 @@ i = 1;
 Zq = zeros(H, W);
 t=1:M;
 
-disp('Decoding rows')
+%disp('Decoding rows')
 for r=0:M:(H-M),
   for c=0:M:(W-M),
     yq = zeros(M,M);
