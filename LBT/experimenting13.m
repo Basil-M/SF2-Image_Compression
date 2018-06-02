@@ -1,4 +1,4 @@
-%% experimenting with different schemes for final scheme
+%{
 %% Optimal parameters
 % DCT
 N_dct = 8; N_enc_dct = 8;
@@ -159,7 +159,7 @@ plot(0:0.05:0.5, ssimval);
 xlabel('Ratio of quantisation'); % for the 1st level of lbt to the 2nd level of lbt
 ylabel('ssim value');
 
-%% Equal MSE for one level of lbt
+%% Equal energy for one level of lbt - basing the quantisation on the image itself
 % for a lbt using a 4x4 dct transform, there will be 16 subimages.
 N=4;
 
@@ -172,4 +172,40 @@ for i=1:4
     end
 end 
 energy = energy/sum(energy(:));
+
+en = dct_energies(X, N);
+en = en/sum(en(:)); 
+
+std(en(:)-energy(:))
+%}
+%% 
+N = 4;
+s = sqrt(2);
+step = 17;
+rise1 = 1;
+
+
+
+
+
+
+Y = lbt_justenc(X, N, s);
+
+en = dct_energies(Y,N); % energy of each sub image
+en = en/sum(en(:)); % normalized by the total energy
+q_ratio = 1./sqrt(en); % q ratios are inversely proportional to the square root of the energies
+
+q = quantratio1(Y, 0.25, q_ratio, N, rise1);
+
+z = quantratio2(q, q_ratio, N, 0.25, rise1);
+
+dctbpp(regroup(z,N)/N, 16);
+
+Z = lbt_dec(z, N, s);
+
+draw(Z);
+
+
+
+
 
