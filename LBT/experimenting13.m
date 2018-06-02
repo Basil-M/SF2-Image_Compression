@@ -62,7 +62,7 @@ N = 4;
 s = sqrt(2);
 
 Y = lbt_justenc(X-128, N, s);
-% performing a 2 level lbt
+% performing a 3 level lbt
 
 A = 0;
 
@@ -76,11 +76,22 @@ A = Y(1:4:256, 1:4:256)/N;
     % put in if statement here so can make the third level optional.
     % pick out dc coefficients of 2nd level
     C = B(1:4:64, 1:4:64)/N;
-
+    draw(C);
     % encode the dc coefficients 
     D = lbt_justenc(C, N, s);
 
-    B(1:4:64,1:4:64) = C;
+    
+    %{
+    C1 = lbt_dec(D,N,s);
+    B1(1:4:64, 1:4:64) = C1*N;
+    A1 = lbt_dec(B, N, s);
+    Y(1:4:256,1:4:256) = A1*N;
+    X1 = lbt_dec(Y, N, s);
+    draw(X1);
+    std(X(:)-X1(:))
+    %}
+
+    B(1:4:64,1:4:64) = D;
 
 
 Y(1:4:256, 1:4:256) = B;
@@ -90,11 +101,20 @@ Zi = Y;
 % add in if statement for this
     % decode the encoded 2nd level dc coefficients
     Zj = Zi(1:4:256, 1:4:256);
-    Zj(1:4:64,1:4:64) = lbt_dec(Zj(1:4:64,1:4:64),N,s)*N;
-    Zi(1:4:256, 1:4:256) = Zj;
+    
+    %Zj(1:4:64,1:4:64) = lbt_dec(Zj(1:4:64,1:4:64),N,s)*N;
+    Zi(1:16:256,1:16:256)=lbt_dec(Zi(1:16:256,1:16:256),N,s)*N;
+    %Zi(1:4:256, 1:4:256) = Zj;
 % decode the encoded dc coefficients (with a 2Nx2N dct block if you put 2*N
 % into lbt_dec)
 Zi(1:4:256, 1:4:256) = lbt_dec(Zi(1:4:256, 1:4:256), N, s)*N;
 
 Z = lbt_dec(Zi, N, s);
 
+%% different levels of ratio between the quantisation of the first level of the lbt and the 2nd level of the lbt.
+%% currently no quantisation is being used for the 3rd level of the lbt
+
+
+for j=0.05:0.05:0.5
+    [ssimval, rmsError, Z, q_opt] = jpegencdeclbtnlev(X, N, M, rise1, s, opthuff, dcbits);
+end

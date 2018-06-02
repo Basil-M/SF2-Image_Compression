@@ -81,7 +81,7 @@ A = Y(1:4:256, 1:4:256)/N;
     % encode the dc coefficients 
     D = lbt_justenc(C, N, s);
 
-    B(1:4:64,1:4:64) = C;
+    B(1:4:64,1:4:64) = D;
 
 
 Y(1:4:256, 1:4:256) = B;
@@ -93,7 +93,10 @@ Y(1:4:256, 1:4:256) = B;
 fprintf(1, 'Quantising to step size of %i\n', qstep); 
 Yq=quant1(Y,qstep,qstep*rise1);
 %encode the dc coefficients with a different step size
-Yq(1:4:256, 1:4:256)=quant1(Y(1:4:256, 1:4:256),0.25*qstep, 0.25*qstep*rise1);
+Yq(1:4:256, 1:4:256)=quant1(Y(1:4:256, 1:4:256),0.1*qstep, 0.1*qstep*rise1);
+%encode the 3rd level coefficients with an even smaller qstep
+Yq(1:16:256, 1:16:256) = quant1(Y(1:16:256,1:16:256),0,0);%0.05*qstep, 0.05*qstep*rise1);
+
 
 % Generate zig-zag scan of AC coefs.
 scan = diagscan(M);
