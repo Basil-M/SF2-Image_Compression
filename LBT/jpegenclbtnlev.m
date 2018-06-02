@@ -95,7 +95,6 @@ Y(1:4:256, 1:4:256) = B;
 
 
 
-
 % Quantise to integers.
 fprintf(1, 'Quantising to step size of %i\n', qstep); 
 Yq=quant1(Y,qstep,qstep*rise1);
