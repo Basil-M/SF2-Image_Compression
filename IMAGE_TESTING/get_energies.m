@@ -1,3 +1,5 @@
+%[ssimval, rmsError, Z, q_opt] = jpegencdeclbtnlev(X, 4, 15, 1, sqrt(2), true, 16, 0.2, 0);
+
 N_DCT = 16;
 C = dct_ii(8);
 
