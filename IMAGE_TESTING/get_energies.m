@@ -22,9 +22,10 @@ for i = 3:length(fol_inf)
     end    
     for k = 3:k_max
         f_name{m} = ['IMAGE_TESTING/IMAGES/' fol_inf(i).name '/' p(k).name];
-        e_m = en(image_reader(f_name{m}));
-        e_m = log(e_m/e_m(1,1));
-        output(m,:, :) = e_m;%en(image_reader(f_name{m}));
+        X_l = image_reader(f_name{m});
+        [ssim(m, 2),~,~, q_opt(m,2), ~] = dwt_opt_enc(X, 7, -1, 0.7);
+        [ssim(m, 1),~,~,q_opt(m,1)] = jpegencdeclbtnlev(X_l, 4, 15, 1, sqrt(2), true, 16, 0.2, 0);
+        energies(m,:, :) =  en(X_l);
         m = m + 1;
     end
 end

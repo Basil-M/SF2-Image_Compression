@@ -137,3 +137,19 @@ for sc = scl
     S_MAT(i) = ssim(X_rec, X);
     i = i + 1;
 end
+%failed
+
+%% Experiment with SVD to remove unimportant detail
+[U,S,V] = svd(X);
+per_keep = [1, 2, 3, 4,5, 10, 15, 20, 30, 40, 50, 75, 100];
+S_MAT = -Inf*ones([length(per_keep) 1]);
+i = 1; 
+for p = per_keep
+    S_p = S;
+    ind = floor(p*length(S)/100);
+    S_p(ind:length(S), ind:length(S)) = 0;
+    X_p = U*S_p*V';
+    [~,~,xr,~,~] = dwt_opt_enc(X_p,7);
+    S_MAT(i) = ssim(xr, X);
+    i = i + 1;
+end
