@@ -1,24 +1,25 @@
 N_DCT = 16;
 C = dct_ii(8);
-Y = @(X) dct_enc(X, N_DCT);
+
+Y = @(X) lbt_enc(X, N_DCT, 1, sqrt(2), 1);
 en = @(X) dct_energies(Y(X), N_DCT);
 
-%N_try = 1;
+N_try = 1;
 
-fol_inf = dir();
+fol_inf = dir('IMAGE_TESTING/IMAGES');
 fol_inf(~[fol_inf.isdir])=[];
 output = [];
 m = 1;
 f_name = cell(0);
 for i = 3:length(fol_inf)
-    p = dir(fol_inf(i).name);
+    p = dir(['IMAGE_TESTING/IMAGES/' fol_inf(i).name]);
     if exist('N_try','var')
         k_max = min(3+ ceil(N_try/(length(fol_inf)-2)), length(p));
     else
         k_max = length(p);
     end    
     for k = 3:k_max
-        f_name{m} = [fol_inf(i).name '/' p(k).name];
+        f_name{m} = ['IMAGE_TESTING/IMAGES/' fol_inf(i).name '/' p(k).name];
         output(m,:, :) = en(image_reader(f_name{m}));
         m = m + 1;
     end

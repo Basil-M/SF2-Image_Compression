@@ -1,4 +1,4 @@
-function [vlc, bits, huffval] = dwt_enc(X,N_LEVELS, M,q0,rise, N_sup,opthuff, dcbits)
+function [vlc, bits, huffval] = dwt_enc(X,N_LEVELS, M,q0,rise, N_sup,N_LBT, opthuff, dcbits)
     
 % DWT_ENC Encodes an image to a (simplified) JPEG bit stream
 %
@@ -19,7 +19,7 @@ function [vlc, bits, huffval] = dwt_enc(X,N_LEVELS, M,q0,rise, N_sup,opthuff, dc
 %  gives the total number of bits in the image
 %  bits and huffval are optional outputs which return the Huffman encoding
 %  used in compression
-
+dwt_scan = true;
 % This is global to avoid too much copying when updated by huffenc
 global huffhist  % Histogram of usage of Huffman codewords.
 
@@ -46,6 +46,9 @@ if ~exist('N_sup','var')
     N_sup = -1;
 end
 
+if ~exist('N_LBT','var')
+    N_LBT = -1;
+end
 % make it zero mean
 %if sum(X(:) > 128) ~= 0; X  = X - 128; end
 %if ((opthuff==true) && (nargout==1)) error('Must output bits and huffval if optimising huffman tables'); end
@@ -57,17 +60,28 @@ Y = nlevdwt(X, N_LEVELS);
 if N_sup > 0
     Y = dwt_suppress(Y, N_LEVELS, N_sup);
 end
-%threshold
+q_rats = dwt_q_ratios(size(Y),N_LEVELS);
+
+if N_LBT > 0
+    q_rats(1,N_LEVELS+1) = q_rats(1,N_LEVELS+1);
+    m_lbt = length(Y)/2^N_LEVELS;
+    q_lbt = q0*q_rats(1, N_LEVELS+1);
+    Y(1:m_lbt, 1:m_lbt) = lbt_enc(Y(1:m_lbt, 1:m_lbt), 4, q_lbt, sqrt(2), rise);
+end
 
 % Quantise to integers.
 %fprintf(1, 'Quantising DWT', q0); 
-Yq=dwtquant1(Y,N_LEVELS, q0*dwt_q_ratios(size(Y),N_LEVELS),rise);
+Yq=dwtquant1(Y,N_LEVELS, q0*q_rats,rise);
 
 % reshuffle to look like DCT
 %fprintf(1, 'Regrouping %i level DWT to look like %i x %i DCT', N_LEVELS, N, N);
-Yq = dwtgroup(Yq, N_LEVELS);
+if dwt_scan
+    scan = dwtscan(length(X), N_LEVELS);
+else
+    Yq = dwtgroup(Yq, N_LEVELS);
 % Generate zig-zag scan of AC coefs.
-scan = diagscan(M);
+    scan = diagscan(M);
+end
 
 % On the first pass use default huffman tables.
 %disp('Generating huffcode and ehuf using default tables')
@@ -81,23 +95,46 @@ sy=size(Yq);
 t = 1:M;
 huffhist = zeros(16*16,1);
 vlc = [];
-for r=0:M:(sy(1)-M),
-  vlc1 = [];
-  for c=0:M:(sy(2)-M),
-    yq = Yq(r+t,c+t);
-    % Possibly regroup 
-    if (M > N) yq = regroup(yq, N); end
-    % Encode DC coefficient first
-    yq(1) = yq(1) + 2^(dcbits-1);
-    if ((yq(1)<1) | (yq(1)>(2^dcbits-1)))
-      error('DC coefficients too large for desired number of bits');
+if~dwt_scan
+    for r=0:M:(sy(1)-M),
+      vlc1 = [];
+      for c=0:M:(sy(2)-M),
+        yq = Yq(r+t,c+t);
+        % Possibly regroup 
+        if ~dwt_scan
+            if (M > N) yq = regroup(yq, N); end
+        end
+        % Encode DC coefficient first
+        yq(1) = yq(1) + 2^(dcbits-1);
+        if ((yq(1)<1) | (yq(1)>(2^dcbits-1)))
+          error('DC coefficients too large for desired number of bits');
+        end
+        dccoef = [yq(1)  dcbits]; 
+        % Encode the other AC coefficients in scan order
+        try
+        ra1 = runampl(yq(scan));
+        catch
+            disp('oop');
+        end
+        vlc1 = [vlc1; dccoef; huffenc(ra1, ehuf)]; % huffenc() also updates huffhist.
+      end
+      vlc = [vlc; vlc1];
     end
-    dccoef = [yq(1)  dcbits]; 
-    % Encode the other AC coefficients in scan order
-    ra1 = runampl(yq(scan));
-    vlc1 = [vlc1; dccoef; huffenc(ra1, ehuf)]; % huffenc() also updates huffhist.
-  end
-  vlc = [vlc; vlc1];
+  else
+    %encode DC coefficients
+    m_lp = length(Y)/2^N_LEVELS;    %size of the DC portion
+    for r = 1:m_lp
+        for c = 1:m_lp
+            dccoef = Yq(r,c) + 2^(dcbits - 1);
+            if (dccoef<1) || dccoef>(2^dcbits-1)
+              error('DC coefficients too large for desired number of bits');
+            end
+            vlc = [vlc; [Yq(r,c) + 2^(dcbits - 1)  dcbits]]; 
+        end
+    end
+    %encode AC component
+    ra1 = runampl(Yq(scan));
+    vlc = [vlc; huffenc(ra1, ehuf)];
 end
 
 % Return here if the default tables are sufficient, otherwise repeat the
@@ -122,20 +159,37 @@ end
 t = 1:M;
 huffhist = zeros(16*16,1);
 vlc = [];
-for r=0:M:(sy(1)-M),
-  vlc1 = [];
-  for c=0:M:(sy(2)-M),
-    yq = Yq(r+t,c+t);
-    % Possibly regroup 
-    if (M > N) yq = regroup(yq, N); end
-    % Encode DC coefficient first
-    yq(1) = yq(1) + 2^(dcbits-1);
-    dccoef = [yq(1)  dcbits]; 
-    % Encode the other AC coefficients in scan order
-    ra1 = runampl(yq(scan));
-    vlc1 = [vlc1; dccoef; huffenc(ra1, ehuf)]; % huffenc() also updates huffhist.
-  end
-  vlc = [vlc; vlc1];
+if~dwt_scan
+    for r=0:M:(sy(1)-M),
+      vlc1 = [];
+      for c=0:M:(sy(2)-M),
+        yq = Yq(r+t,c+t);
+        % Possibly regroup 
+        if (M > N) yq = regroup(yq, N); end
+        % Encode DC coefficient first
+        yq(1) = yq(1) + 2^(dcbits-1);
+        dccoef = [yq(1)  dcbits]; 
+        % Encode the other AC coefficients in scan order
+        ra1 = runampl(yq(scan));
+        vlc1 = [vlc1; dccoef; huffenc(ra1, ehuf)]; % huffenc() also updates huffhist.
+      end
+      vlc = [vlc; vlc1];
+    end
+else
+    %encode DC coefficients
+    m_lp = length(Y)/2^N_LEVELS;    %size of the DC portion
+    for r = 1:m_lp
+        for c = 1:m_lp
+            dccoef = Yq(r,c) + 2^(dcbits - 1);
+            if (dccoef<1) || dccoef>(2^dcbits-1)
+              error('DC coefficients too large for desired number of bits');
+            end
+            vlc = [vlc; [Yq(r,c) + 2^(dcbits - 1)  dcbits]]; 
+        end
+    end
+    %encode AC component
+    ra1 = runampl(Yq(scan));
+    vlc = [vlc; huffenc(ra1, ehuf)];
 end
 %fprintf(1,'Bits for coded image = %d\n', sum(vlc(:,2)))
 %fprintf(1,'Bits for huffman table = %d\n', (16+max(size(dhuffval)))*8)

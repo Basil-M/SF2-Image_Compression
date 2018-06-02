@@ -43,12 +43,31 @@ for n = 1:7
 end
 
 surf(S_MAT);
+
 ylabel('Encoding width')
+yticks(1:7);
 yticklabels({'1','2','4','8','16','32','64','128','256'});
 xlabel('Number of levels')
 xticks(1:7);
 zlabel('SSIM')
 
+%best seems to always be M = 2^N
+%in this case, 5|5?
+[s,n,xr,q,vlc] = dwt_opt_enc(X,5);
+draw(xr);
+
+%% INVESTIGATING SUB-IMAGE WIDTH
+
+S_MAT = -Inf*ones([7,1]);
+for n = 1:7
+    [S_MAT(n),~,~,~,~] = dwt_opt_enc(X, n);
+end
+
+plot(S_MAT);
+
+ylabel('SSIM')
+xlabel('Number of levels')
+xticks(1:7);
 %% Different filters
 dwtmode('per');
 wname = 'bior4.4';
@@ -69,4 +88,21 @@ Yq2{1} = C;
 Xq = idwt_f(Yq2, wname);
 ssim(Xq,X);
 
-%% Seperate approach for high and low frequencies
+%% Compare high frequencies to the 
+%generate lowpass filter
+f_size = 10;
+sig = 1;
+f2 = ceil(f_size/2);
+[X1,X2] = meshgrid(-f2:1:f2, -f2:1:f2);
+F = mvnpdf([X1(:) X2(:)], [0 0], sig*[1 0; 0 1]);
+F = reshape(F, 2*f2+1, 2*f2+1);
+
+x_lp = conv2(X, F, 'same');
+x_hp = x_lp;
+[s,n,xr,q,vlc] = dwt_opt_enc(X,7);
+[~, ssimMap] = ssim(X, xr);
+
+s_draw = ssimMap - min(ssimMap(:));
+s_draw = s_draw/max(s_draw(:));
+x_draw = x_hp - min(x_hp(:));
+s_draw = s_draw*max(x_draw(:));
