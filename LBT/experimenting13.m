@@ -52,7 +52,7 @@ Yr = regroup(Y, N)/N;
 figure(2);
 draw(Yr);
 Yrdc = Yr(1:lmax+1, 1:kmax+1);
-draw(Yrdc);
+%draw(Yrdc);
 rmsError = std(Yrdc(:)-A(:))
 
 %% 3 level lbt
@@ -113,8 +113,63 @@ Z = lbt_dec(Zi, N, s);
 
 %% different levels of ratio between the quantisation of the first level of the lbt and the 2nd level of the lbt.
 %% currently no quantisation is being used for the 3rd level of the lbt
+N = 4;
+M= 16;
+rise1 = 1;
+s = sqrt(2);
 
 
-for j=0.05:0.05:0.5
-    [ssimval, rmsError, Z, q_opt] = jpegencdeclbtnlev(X, N, M, rise1, s, opthuff, dcbits);
+i=1;
+ssimval1=0;
+ssimval2=0;
+for ratio=0.05:0.05:0.5
+    load lighthouse;
+    [ssimval1(i), ~, Z1, ~] = jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio);
+    load bridge;
+    [ssimval2(i), ~, Z2, ~] = jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio);
+    i = i+1;
 end
+
+
+
+%% This didn't work 
+evalc(' ssimval = @(ratio)jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio); ratio_opt = fminsearch(ssimval, 0.2);');
+%%
+plot(0.05:0.05:0.5, ssimval);
+xlabel('Ratio of quantisation'); % for the 1st level of lbt to the 2nd level of lbt
+ylabel('ssim value');
+
+%% Using the bridge image and taking the ratio which gave the optimum value (0.3). Testing the best ratio for the 3rd level
+
+load bridge;
+N = 4;
+M= 16;
+rise1 = 1;
+s = sqrt(2);
+ratio = 0.3;
+i=1;
+ssimval =0;
+for ratio2=0:0.05:0.5
+    [ssimval2(i), rmsError2, Z2, q_opt2] = jpegencdeclbtnlev(X, N, M, rise1, s, true, 16, ratio, ratio2);
+    i = i+1;
+end
+
+%% 
+plot(0:0.05:0.5, ssimval);
+xlabel('Ratio of quantisation'); % for the 1st level of lbt to the 2nd level of lbt
+ylabel('ssim value');
+
+%% Equal MSE for one level of lbt
+% for a lbt using a 4x4 dct transform, there will be 16 subimages.
+N=4;
+
+energy = 0;
+
+for i=1:4
+    for j=1:4
+        Xsub = X(i:N:256,j:N:256);
+        energy(i,j) = sum(Xsub(:).^2);
+    end
+end 
+energy = energy/sum(energy(:));
+
