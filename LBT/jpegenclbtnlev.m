@@ -33,7 +33,7 @@ global huffhist  % Histogram of usage of Huffman codewords.
 
 % Presume some default values if they have not been provided
 error(nargchk(2, 10, nargin, 'struct')); % the 8 was originally 6, don't know if this actually needed changing
-if ((nargout~=1) && (nargout~=3)) error('Must have one or three output arguments'); end
+%if ((nargout~=1) && (nargout~=3)) error('Must have one or three output arguments'); end
 if (nargin<10)
     ratio2 = 0;
     if(nargin<9)
@@ -82,7 +82,7 @@ A = Y(1:N:W, 1:N:H)/N;
 
     % encode the dc coefficients (with a 2Nx2N dct block if you put 2*N
     % into lbt_dec)
-    %B = lbt_justenc(A, N, s);
+    B = lbt_justenc(A, N, s);
 
     % put in if statement here so can make the third level optional.
     % pick out dc coefficients of 2nd level
