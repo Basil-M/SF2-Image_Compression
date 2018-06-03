@@ -70,6 +70,7 @@ end
 %Y=colxfm(colxfm(X,C8)',C8)'; 
 
 Y = lbt_justenc(X-128, N, s);
+
 % performing a 2 level lbt
 
 A = 0;
