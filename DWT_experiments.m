@@ -2,7 +2,7 @@ N_DWT = 7;
 
 inBits = @(kB) kB*8*1024;
 inkB = @(Bits) Bits/(8*1024);
-
+%{
 %% BASIC DWT
 % This is the basic DWT
 % By default it uses a rise of 1, no suppression, subimage width of 2^N_DWT
@@ -152,4 +152,28 @@ for p = per_keep
     [~,~,xr,~,~] = dwt_opt_enc(X_p,7);
     S_MAT(i) = ssim(xr, X);
     i = i + 1;
+end
+%}
+
+%% Investigating breaking into sub-images
+m = 2; %number of sub-images
+w = size(X)/m;
+X_sub = zeros([m, m, w]);
+X_recon = zeros(256,256);
+ens = zeros(m,m);
+E = @(s) sum(s(:).^2);
+log2 = @(s) log(s)/log(2);
+N_level = log(w(1))/log(2) - 1;
+for r = 1:m
+    for c = 1:m
+        X_sub(r,c,:,:) = X(1+(r-1)*w:r*w, 1+(c-1)*w:c*w);
+        ens(r,c) = E(X_sub(r,c,:));
+    end
+end
+ens = floor(40960*ens/sum(ens(:)));
+for r = 1:m
+    for c = 1:m
+        X_s = squeeze(X_sub(r,c,:,:));
+        [~,~,X_recon(1+(r-1)*w:r*w, 1+(c-1)*w:c*w),~,~] = dwt_opt_enc(X_s,N_level,-1,0.5,-1,-1,1,16,ens(r,c));
+    end
 end

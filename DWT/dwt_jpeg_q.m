@@ -1,4 +1,4 @@
-function [q_opt] = dwt_jpeg_q(X,N_LEVELS, M,rise,N_sup,N_LBT, opthuff)
+function [q_opt] = dwt_jpeg_q(X,N_LEVELS, M,rise,N_sup,N_LBT, opthuff, targ)
 %DWT_JPEG_Q Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -15,7 +15,7 @@ nbits = @(q) jpegbits(vlc_q(q), opthuff, true);
 %fn = @(q) (nbits(q) - 40960)^2; %function to minimise
 q_cur = 20;
 precision = 4;
-targ = 40960;
+if ~exist('targ','var'); targ = 40960; end
 step = 1;
 %initialisation
 while(nbits(q_cur) > targ) && (q_cur < 256)
@@ -29,6 +29,10 @@ else
     for p = 1:precision
        while nbits(q_cur) < targ
         q_cur = q_cur - step;
+        if(q_cur <= 0)
+            q_opt = -1;
+            return 
+        end
        end
        q_cur = q_cur + step;
        step = step/10; 

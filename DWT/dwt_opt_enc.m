@@ -1,4 +1,4 @@
-function [ssim_r, nbits, Xr, Q, vlc] = dwt_opt_enc(X, N_LEVELS, M, rise, N_sup, N_LBT, opthuff, dcbits)
+function [ssim_r, nbits, Xr, Q, vlc] = dwt_opt_enc(X, N_LEVELS, M, rise, N_sup, N_LBT, opthuff, dcbits, targ)
 %DWT_OPT_ENC Optimises Q and returns encoded dwt in one (for convenience!)
 %dwt_opt_enc(X, 7,-1,-1,-1,'haar')
 if ~exist('rise','var')
@@ -7,8 +7,8 @@ elseif rise < 0
     rise = 1;
 end
 
-if ~exist('N_sup', 'var')
-    N_sup = 0;
+if ~exist('N_sup', 'var')    N_sup = 0;
+
 elseif N_sup < 0
     N_sup = 0;
 end
@@ -37,8 +37,12 @@ if ~exist('N_LBT','var')
 end
 
 fprintf('Optimising q for N = %i, M = %i, rise = %0.2f, N_sup=%i\n',N_LEVELS, M, rise, N_sup);
-Q = dwt_jpeg_q(X, N_LEVELS, M, rise, N_sup,N_LBT, opthuff);
-if(Q == -1)
+if exist('targ','var')
+    Q = dwt_jpeg_q(X, N_LEVELS, M, rise, N_sup,N_LBT, opthuff, targ);
+else
+    Q = dwt_jpeg_q(X, N_LEVELS, M, rise, N_sup,N_LBT, opthuff);
+end
+if(Q <= 0)
     Xr = [];
     nbits = [];
     ssim_r = -Inf;

@@ -1,12 +1,11 @@
 %[ssimval, rmsError, Z, q_opt] = jpegencdeclbtnlev(X, 4, 15, 1, sqrt(2), true, 16, 0.2, 0);
 
-N_DCT = 16;
-C = dct_ii(8);
+N_DCT = 16;;
 
 Y = @(X) lbt_enc(X, N_DCT, 1, sqrt(2), 1);
 en = @(X) dct_energies(Y(X), N_DCT);
 
-N_try = 1;
+%N_try = 1;
 
 fol_inf = dir('IMAGE_TESTING/IMAGES');
 fol_inf(~[fol_inf.isdir])=[];
@@ -22,12 +21,26 @@ for i = 3:length(fol_inf)
     end    
     for k = 3:k_max
         f_name{m} = ['IMAGE_TESTING/IMAGES/' fol_inf(i).name '/' p(k).name];
-        X_l = image_reader(f_name{m});
-        [ssim(m, 2),~,~, q_opt(m,2), ~] = dwt_opt_enc(X, 7, -1, 0.7);
-        [ssim(m, 1),~,~,q_opt(m,1)] = jpegencdeclbtnlev(X_l, 4, 15, 1, sqrt(2), true, 16, 0.2, 0);
-        energies(m,:, :) =  en(X_l);
         m = m + 1;
     end
+end
+
+%% Run on all files
+inds = randperm(numel(f_name));
+ssimVals = zeros(m, 4);
+energies = zeros(m, N_DCT, N_DCT);
+for m = 1:length(f_name)
+    fprintf ("loading image %s\n", f_name{inds(m)});
+    X_l = image_reader(f_name{inds(m)});
+    try
+        [ssimVals(m, 1),~,~, ~, ~] = dwt_opt_enc(X_l, 7, -1, 0.5);
+        [ssimVals(m, 2),~,~, ~, ~] = dwt_opt_enc(X_l, 7, -1, 1);
+        evalc('[ssimVals(m, 3),~,~,~] = jpegencdeclbtnlev(X_l, 4, 16, 0.5, sqrt(2), true, 16, 0.2, 0);');
+        evalc('[ssimVals(m, 4),~,~,~] = jpegencdeclbtnlev(X_l, 4, 16, 1, sqrt(2), true, 16, 0.2, 0);');
+    catch
+        ssimVals(m,:) = -Inf;
+    end
+    energies(m,:, :) =  en(X_l);
 end
 
 %% Get files from output
@@ -35,7 +48,7 @@ N_STORE = 10;
 files = cell(N_DCT, N_DCT, 3, N_STORE);
 for r = 1:N_DCT
     for c = 1:N_DCT
-        [A, I] = sort(output(:, r, c));
+        [A, I] = sort(energies(:, r, c));
         m_ind = floor(0.5*(length(I) - N_STORE));
         
         for n = 1:N_STORE
@@ -50,5 +63,6 @@ for r = 1:N_DCT
         end
     end
 end
- 
+
+save('test_results')
         
