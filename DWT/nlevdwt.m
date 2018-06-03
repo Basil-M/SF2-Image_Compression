@@ -1,6 +1,6 @@
 % DWT with N layers 
 function Y =nlevdwt(X, N);
-m = 256; 
+m = size(X, 1); 
 % not sure this is correct place to subtract 128 but gives good image
 Y = dwt(X-128);
 i = 1;
