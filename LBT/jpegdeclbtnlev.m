@@ -146,7 +146,7 @@ Zi(1:N:W, 1:N:H)=quant2(Zq(1:N:W, 1:N:H),ratio*qstep, ratio*qstep*rise1);
 Zi(1:N^2:W, 1:N^2:H) = quant2(Zq(1:N^2:W,1:N^2:H),ratio2*ratio*qstep,ratio2*ratio*qstep*rise1);
 
 % add in if statement for this
-    % decode the encoded 2nd level dc coefficients
+    % decode the encoded 3rd level dc coefficients
     %Zj = Zi(1:N:W, 1:N:H);
     %Zj(1:N:W/N,1:N:H/N) = lbt_dec(Zj(1:N:W/N,1:N:H/N),N,s)*N;
     %Zi(1:N:W, 1:N:H) = Zj;

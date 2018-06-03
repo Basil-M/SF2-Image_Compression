@@ -3,9 +3,10 @@ clear all;
 fname = 'lighthouse';
 
 load(fname);
-fprintf("Compressing %s to 40960 bits.\n", fname);
+fprintf('Compressing %s to 40960 bits.\n', fname);
 fname = fname(1:5);
 comp_enc;
+clearvars -except Z_draw fname;
 comp_dec;
 
 Z_draw = Z;
@@ -14,9 +15,10 @@ clearvars -except Z_draw
 fname = 'bridge';
 
 load(fname);
-fprintf("Compressing %s to 40960 bits.\n", fname);
+fprintf('Compressing %s to 40960 bits.\n', fname);
 fname = fname(1:5);
 comp_enc;
+clearvars -except Z_draw fname;
 comp_dec;
 
 Z_draw = beside(Z_draw, Z);
@@ -26,9 +28,10 @@ clearvars -except Z_draw
 fname = 'flamingo';
 
 load(fname);
-fprintf("Compressing %s to 40960 bits.\n", fname);
+fprintf('Compressing %s to 40960 bits.\n', fname);
 fname = fname(1:5);
 comp_enc;
+clearvars -except Z_draw fname;
 comp_dec;
 
 Z_draw = beside(Z_draw, Z);
