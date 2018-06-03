@@ -2,9 +2,9 @@ function [ssim_r, nbits, Xr, Q, vlc] = dwt_opt_enc(X, N_LEVELS, M, rise, N_sup, 
 %DWT_OPT_ENC Optimises Q and returns encoded dwt in one (for convenience!)
 %dwt_opt_enc(X, 7,-1,-1,-1,'haar')
 if ~exist('rise','var')
-    rise = 1;
+    rise = 0.5;
 elseif rise < 0
-    rise = 1;
+    rise = 0.5;
 end
 
 if ~exist('N_sup', 'var')    N_sup = 0;
@@ -23,9 +23,7 @@ elseif opthuff == -1
 end
 
 if ~exist('M','var')
-    M = 2^N_LEVELS;
-elseif M < 0
-    M = 2^N_LEVELS;
+    M = -1;
 end
 
 if ~exist('dcbits','var')

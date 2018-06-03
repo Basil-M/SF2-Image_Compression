@@ -20,7 +20,7 @@ function Z = dwt_dec(vlc, N_LEVELS,M, q0,rise,N_LBT, bits, huffval, dcbits, W, H
 %  Z is the output greyscale image
 
 % Presume some default values if they have not been provided
-dwt_scan = true;
+dwt_scan = (M < 1);
 opthuff = exist('bits','var')&exist('huffval','var');
 if ~exist('H','var') || ~exist('W','var')
     H = 256; W = 256;

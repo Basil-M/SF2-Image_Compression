@@ -26,3 +26,28 @@ t = 1:m2;
 Y(t,:) = rowdec(X,h1)';
 Y(t+m2,:) = rowdec2(X,h2)';
 
+
+
+%{
+per_keep = 10;
+[U,S,V] = svd(Y);
+ind = ceil(per_keep*m/100);
+S(ind:m, ind:m) = 0;
+Y = U*S*V';
+
+for r = 1:2
+    for c = 1:2
+        %don't remove detail from lowpass as this will propagate through
+        %subsequent layers
+        if ~(r==1 && c == 1)
+            Y_s = Y(1+(r-1)*m2:r*m2, 1+(c-1)*m2:c*m2);   
+            [U,S,V] = svd(Y_s);
+            ind = ceil(per_keep*m2/100);
+            S(ind:length(S), ind:length(S)) = 0;
+            Y(1+(r-1)*m2:r*m2, 1+(c-1)*m2:c*m2) = U*S*V';
+        end
+    end
+end
+%}
+end
+

@@ -19,7 +19,7 @@ function [vlc, bits, huffval] = dwt_enc(X,N_LEVELS, M,q0,rise, N_sup,N_LBT, opth
 %  gives the total number of bits in the image
 %  bits and huffval are optional outputs which return the Huffman encoding
 %  used in compression
-dwt_scan = true;
+dwt_scan = (M < 0);
 % This is global to avoid too much copying when updated by huffenc
 global huffhist  % Histogram of usage of Huffman codewords.
 

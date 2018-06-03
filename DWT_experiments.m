@@ -2,7 +2,7 @@ N_DWT = 7;
 
 inBits = @(kB) kB*8*1024;
 inkB = @(Bits) Bits/(8*1024);
-%{
+
 %% BASIC DWT
 % This is the basic DWT
 % By default it uses a rise of 1, no suppression, subimage width of 2^N_DWT
@@ -46,56 +46,66 @@ surf(S_MAT);
 
 ylabel('Encoding width')
 yticks(1:7);
-yticklabels({'1','2','4','8','16','32','64','128','256'});
+yticklabels({'2','4','8','16','32','64','128'});
 xlabel('Number of levels')
 xticks(1:7);
 zlabel('SSIM')
 
 %best seems to always be M = 2^N
 %in this case, 5|5?
-[s,n,xr,q,vlc] = dwt_opt_enc(X,5);
-draw(xr);
+%[s,n,xr,q,vlc] = dwt_opt_enc(X,5);
+%draw(xr);
 
 
 %% Different filters
 dwtmode('per');
-wname = 'bior4.4';
-q0 = 0.000000001;
+wname = 'bior3.3';
+q0 = 1;
 Y = dwt_f(X, 4, wname);
-C = Y{1};
-mu_C = mean(C);
-std_C = std(C);
-C = (C - mu_C)/std_C;
-Y{1} = C;
+
+%C = Y{1};
+%C = quantise(C,50);
+%Y{1} = C;
+%Yq2 = Y;
 
 q_rf = dwt_q_ratios_f(Y, wname);
-Yq1 = dwtquant1_f(Y, q0*q_rf, 1);
-Yq2 = dwtquant2_f(Y, q0*q_rf, 1);
-C = Yq2{1};
-C = std_C*C + mu_C;
-Yq2{1} = C;
+Yq1 = dwtquant1_f(Y, q0*q_rf, 0.5);
+Yq2 = dwtquant2_f(Yq1, q0*q_rf, 0.5);
+
 Xq = idwt_f(Yq2, wname);
-ssim(Xq,X);
+ssim(Xq+128,X)
 
 %% Compare high frequencies to the 
 %generate lowpass filter
 f_size = 10;
-sig = 1;
+sig = 0.5;
 f2 = ceil(f_size/2);
 [X1,X2] = meshgrid(-f2:1:f2, -f2:1:f2);
 F = mvnpdf([X1(:) X2(:)], [0 0], sig*[1 0; 0 1]);
 F = reshape(F, 2*f2+1, 2*f2+1);
 
 x_lp = conv2(X, F, 'same');
-x_hp = x_lp;
-[s,n,xr,q,vlc] = dwt_opt_enc(X,7);
-[~, ssimMap] = ssim(X, xr);
+x_hp = X - x_lp;
+[s_d,n,xr,q,vlc] = dwt_opt_enc(X,7);
+evalc('[s_l,~,xrlbt,~] = jpegencdeclbtnlev(X, 4, 16, r, sqrt(2), true, 16, 0.1, 0);');
+[~, ssimMap] = ssim(xr, X);
+[s, ssimMapLBT] = ssim(xrlbt, X-128);
 
 s_draw = ssimMap - min(ssimMap(:));
-s_draw = s_draw/max(s_draw(:));
-x_draw = x_hp - min(x_hp(:));
-s_draw = s_draw*max(x_draw(:));
+s_draw_l = ssimMapLBT - min(ssimMapLBT(:));
 
+s_draw = s_draw/max(s_draw(:));
+s_draw_l = s_draw_l/max(s_draw_l(:));
+
+x_draw = x_hp - min(x_hp(:));
+
+s_draw = s_draw*max(x_draw(:));
+s_draw_l = s_draw_l*max(x_draw(:));
+
+% draw(beside(x_draw, s_draw_l));
+% figure(2);
+% draw(beside(s_draw, x_draw));
+draw(beside(beside(s_draw,x_draw), s_draw_l));
 %% INVESTIGATING USING LBT
 
 S_MAT = -Inf*ones([2,7]);
@@ -109,22 +119,24 @@ hold on;
 plot(S_MAT(2,:));
 ylabel('SSIM')
 xlabel('Number of levels')
+legend('No LBT','LBT on final DWT lowpass');
 
 %% INVESTIGATING RISE
 rises = 0.1:0.05:1.5;
-S_MAT = -Inf*ones([1,length(rises)]);
-Q_MAT = -Inf*ones([1,length(rises)]);
+S_MAT = -Inf*ones([2,length(rises)]);
+%Q_MAT = -Inf*ones([2,length(rises)]);
 i = 1;
 for r = rises
-   [S_MAT(i),~,~, Q_MAT(i), ~] = dwt_opt_enc(X,7, -1, r);
+   evalc('[S_MAT(1,i),~,~,~] = jpegencdeclbtnlev(X, 4, 16, r, sqrt(2), true, 16, 0.1, 0);');
+   [S_MAT(2, i),~,~, ~, ~] = dwt_opt_enc(X,7, -1, r);
    i = i + 1;
 end
 
-plot(rises,S_MAT);
+plot(rises,S_MAT(1,:));
+hold on;
+plot(rises, S_MAT(2,:));
 ylabel('SSIM value');
-yyaxis right;
-plot(rises,Q_MAT);
-ylabel('Optimal Q');
+legend('LBT','DWT');
 xlabel('Rise');
 %% Experiment with resizing
 scl = 1:0.2:2;
@@ -141,7 +153,7 @@ end
 
 %% Experiment with SVD to remove unimportant detail
 [U,S,V] = svd(X);
-per_keep = [1, 2, 3, 4,5, 10, 15, 20, 30, 40, 50, 75, 100];
+per_keep = SS(1,:);
 S_MAT = -Inf*ones([length(per_keep) 1]);
 i = 1; 
 for p = per_keep
@@ -153,27 +165,57 @@ for p = per_keep
     S_MAT(i) = ssim(xr, X);
     i = i + 1;
 end
-%}
+
 
 %% Investigating breaking into sub-images
 m = 2; %number of sub-images
-w = size(X)/m;
-X_sub = zeros([m, m, w]);
-X_recon = zeros(256,256);
-ens = zeros(m,m);
 E = @(s) sum(s(:).^2);
 log2 = @(s) log(s)/log(2);
-N_level = log(w(1))/log(2) - 1;
-for r = 1:m
-    for c = 1:m
-        X_sub(r,c,:,:) = X(1+(r-1)*w:r*w, 1+(c-1)*w:c*w);
-        ens(r,c) = E(X_sub(r,c,:));
+S_MAT = [];
+for m = [2]
+    ens = zeros(m,m);
+    X_recon = zeros(256,256);
+    w = size(X,1)/m;
+    X_sub = zeros([m, m, w, w]);
+    N_level = log2(w) - 1;
+    for r = 1:m
+        for c = 1:m
+            X_sub(r,c,:,:) = X(1+(r-1)*w:r*w, 1+(c-1)*w:c*w);
+            ens(r,c) = E(X_sub(r,c,:));
+        end
     end
-end
-ens = floor(40960*ens/sum(ens(:)));
-for r = 1:m
-    for c = 1:m
-        X_s = squeeze(X_sub(r,c,:,:));
-        [~,~,X_recon(1+(r-1)*w:r*w, 1+(c-1)*w:c*w),~,~] = dwt_opt_enc(X_s,N_level,-1,0.5,-1,-1,1,16,ens(r,c));
+    ens = floor(40960*ens/sum(ens(:)));
+    for r = 1:m
+        for c = 1:m
+            X_s = squeeze(X_sub(r,c,:,:));
+            [~,~,X_recon(1+(r-1)*w:r*w, 1+(c-1)*w:c*w),~,~] = dwt_opt_enc(X_s,N_level,-1,0.5,-1,-1,1,16,ens(r,c));
+        end
     end
+    S_MAT = [S_MAT ssim(X_recon, X)];
 end
+
+%% Compress high and low freq separately
+%generate lowpass filter
+f_size = 10;
+sig = 0.5;
+f2 = ceil(f_size/2);
+[X1,X2] = meshgrid(-f2:1:f2, -f2:1:f2);
+F = mvnpdf([X1(:) X2(:)], [0 0], sig*[1 0; 0 1]);
+F = reshape(F, 2*f2+1, 2*f2+1);
+
+x_lp = conv2(X, F, 'same');
+x_hp = X - x_lp;
+
+BW1 = edge(X, 'sobel');
+dil = imdilate(BW1, strel('disk',4,4));
+
+X_edges = X;
+X_edges(~dil) = 0;
+X_noedges = X;
+X_noedges(dil) = 0;
+
+bits_edges = 10000;
+[~,bits_edges,xr_edge,~,~] = dwt_opt_enc(X_edges,7,-1,0.5,-1,-1,1,16,bits_edges);
+[~,~,xr_noedge,~,~] = dwt_opt_enc(X_noedges,7,-1,0.5,-1,-1,1,16,40960 - bits_edges);
+
+xr = xr_noedge + xr_edge;
