@@ -10,7 +10,7 @@ end
 if dwt
     nbits = nbits + 88;
 else
-    nbits = nbits + 120;
+    nbits = nbits + 120 + 32; % additional 32 bits for the ratio
 end
 
 end

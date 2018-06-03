@@ -1,4 +1,4 @@
-function [vlc bits huffval] = jpegenclbtnlev(X, qstep, N, M, rise1, s, opthuff, dcbits, ratio, ratio2)
+function [vlc, bits, huffval, qstep, ratio] = jpegenclbtnlev(X, qstep, N, M, rise1, s, opthuff, dcbits, ratio, ratio2)
 % performing a multi level lbt    
 
 
