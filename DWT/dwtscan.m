@@ -14,15 +14,27 @@ s2 = S_c/2;
 scan = [];
 %vertical scan
 for i = 1:N
-    for c = (1+s2):S_c
+    for c = (1+s2):2:S_c
         for r = 1:s2
             scan = [scan v(r,c)];
         end
+        if c~=S_c
+            %and back up
+            for r = s2:-1:1
+                scan = [scan v(r,c+1)];
+            end
+        end
     end
     %horizontal scan
-    for r = (1+s2):S_c
+    for r = (1+s2):2:S_c
         for c = 1:s2
             scan = [scan v(r,c)];
+        end
+        if r~=S_c
+            %and back to the left
+            for c = s2:-1:1
+                scan = [scan v(r+1,c)];
+            end
         end
     end
     %diagonal scan on diagonal details

@@ -172,7 +172,7 @@ m = 2; %number of sub-images
 E = @(s) sum(s(:).^2);
 log2 = @(s) log(s)/log(2);
 S_MAT = [];
-for m = [2]
+for m = [1 2]
     ens = zeros(m,m);
     X_recon = zeros(256,256);
     w = size(X,1)/m;
@@ -184,11 +184,19 @@ for m = [2]
             ens(r,c) = E(X_sub(r,c,:));
         end
     end
-    ens = floor(40960*ens/sum(ens(:)));
+    ens = floor(40960*ens/sum(ens(:)))
     for r = 1:m
         for c = 1:m
             X_s = squeeze(X_sub(r,c,:,:));
-            [~,~,X_recon(1+(r-1)*w:r*w, 1+(c-1)*w:c*w),~,~] = dwt_opt_enc(X_s,N_level,-1,0.5,-1,-1,1,16,ens(r,c));
+            [~,n,X_recon(1+(r-1)*w:r*w, 1+(c-1)*w:c*w),~,~] = dwt_opt_enc(X_s,N_level,-1,0.5,-1,-1,1,16,ens(r,c));
+            %redistribute unused bit allowance to next one
+            if ~(r == m && c == m)
+                if c == m
+                    ens(r + 1, c) = ens(r + 1, c) + (ens(r,c) - n);
+                else
+                    ens(r, c + 1) = ens(r, c + 1) + (ens(r,c) - n);
+                end
+            end    
         end
     end
     S_MAT = [S_MAT ssim(X_recon, X)];
