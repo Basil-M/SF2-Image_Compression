@@ -142,18 +142,18 @@ fprintf(1, 'Inverse quantising to step size of %i\n', qstep);
 %Work out how to remove the quantisation when I'm quantising each bit
 %separately
 Zi=quant2(Zq,qstep,rise1*qstep);
-Zi(1:4:256, 1:4:256)=quant2(Zq(1:4:256, 1:4:256),ratio*qstep, ratio*qstep*rise1);
-Zi(1:16:256, 1:16:256) = quant2(Zq(1:16:256,1:16:256),ratio2*ratio*qstep,ratio2*ratio*qstep*rise1);
+Zi(1:N:W, 1:N:H)=quant2(Zq(1:N:W, 1:N:H),ratio*qstep, ratio*qstep*rise1);
+Zi(1:N^2:W, 1:N^2:H) = quant2(Zq(1:N^2:W,1:N^2:H),ratio2*ratio*qstep,ratio2*ratio*qstep*rise1);
 
 % add in if statement for this
     % decode the encoded 2nd level dc coefficients
-    Zj = Zi(1:4:256, 1:4:256);
-    Zj(1:4:64,1:4:64) = lbt_dec(Zj(1:4:64,1:4:64),N,s)*N;
-    Zi(1:4:256, 1:4:256) = Zj;
+    %Zj = Zi(1:N:W, 1:N:H);
+    %Zj(1:N:W/N,1:N:H/N) = lbt_dec(Zj(1:N:W/N,1:N:H/N),N,s)*N;
+    %Zi(1:N:W, 1:N:H) = Zj;
     
 % decode the encoded dc coefficients (with a 2Nx2N dct block if you put 2*N
 % into lbt_dec)
-Zi(1:4:256, 1:4:256) = lbt_dec(Zi(1:4:256, 1:4:256), N, s)*N;
+Zi(1:N:W, 1:N:H) = lbt_dec(Zi(1:N:W, 1:N:H), N, s)*N;
 
 Z = lbt_dec(Zi, N, s);
 

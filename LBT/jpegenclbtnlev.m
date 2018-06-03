@@ -68,6 +68,8 @@ end
 %fprintf(1, 'Forward %i x %i DCT\n', N, N);
 %C8=dct_ii(N);
 %Y=colxfm(colxfm(X,C8)',C8)'; 
+W = size(X,1);
+H = size(X,2);
 
 Y = lbt_justenc(X-128, N, s);
 
@@ -76,23 +78,23 @@ Y = lbt_justenc(X-128, N, s);
 A = 0;
 
 % pick out the DC component
-A = Y(1:4:256, 1:4:256)/N;
+A = Y(1:N:W, 1:N:H)/N;
 
     % encode the dc coefficients (with a 2Nx2N dct block if you put 2*N
     % into lbt_dec)
-    B = lbt_justenc(A, N, s);
+    %B = lbt_justenc(A, N, s);
 
     % put in if statement here so can make the third level optional.
     % pick out dc coefficients of 2nd level
-    C = B(1:4:64, 1:4:64)/N;
+    %C = B(1:N:W/N, 1:N:W/N)/N;
 
     % encode the dc coefficients 
-    D = lbt_justenc(C, N, s);
+    %D = lbt_justenc(C, N, s);
 
-    B(1:4:64,1:4:64) = D;
+    %B(1:N:W/N,1:N:H/N) = D;
 
 
-Y(1:4:256, 1:4:256) = B;
+Y(1:N:W, 1:N:H) = B;
 
 
 
@@ -100,9 +102,9 @@ Y(1:4:256, 1:4:256) = B;
 fprintf(1, 'Quantising to step size of %i\n', qstep); 
 Yq=quant1(Y,qstep,qstep*rise1);
 %encode the dc coefficients with a different step size
-Yq(1:4:256, 1:4:256)=quant1(Y(1:4:256, 1:4:256),ratio*qstep, ratio*qstep*rise1);
+Yq(1:N:W, 1:N:H)=quant1(Y(1:N:W, 1:N:H),ratio*qstep, ratio*qstep*rise1);
 %encode the 3rd level coefficients with an even smaller qstep
-Yq(1:16:256, 1:16:256) = quant1(Y(1:16:256,1:16:256),ratio2*ratio*qstep, ratio2*ratio*qstep*rise1);%0.05*qstep, 0.05*qstep*rise1);
+Yq(1:N^2:W, 1:N^2:H) = quant1(Y(1:N^2:W,1:N^2:H),ratio2*ratio*qstep, ratio2*ratio*qstep*rise1);%0.05*qstep, 0.05*qstep*rise1);
 
 
 % Generate zig-zag scan of AC coefs.
