@@ -26,6 +26,7 @@ cur_ind = cur_ind + len_n + 1;
 for i = 1:N   
     len_n = prod(S(i+1,:)) - 1;     %number of elements in C column vector this corresponds to
     for k = 1:3
+        fprintf("Quantising range %i to %i with step %0.2f\n", cur_ind, cur_ind+len_n, dwtstep(q_ind));
         C(cur_ind:cur_ind+len_n) = quant1(C(cur_ind:cur_ind+len_n),dwtstep(q_ind),rise*dwtstep(q_ind));
         q_ind = q_ind + 1;
         cur_ind = cur_ind + len_n + 1;
