@@ -3,9 +3,9 @@ function [q_opt] = dwt_jpeg_q(X,N_LEVELS, M,rise,N_sup,N_LBT, opthuff, targ)
 %   Detailed explanation goes here
 
 %set default parameter values
-if~exist('rise','var'); rise = 1; end
+if~exist('rise','var'); rise = 0.5; end
 if ~exist('opthuff','var'); opthuff = true; end
-if ~exist('M','var'); M = 2^N_LEVELS; end
+if ~exist('M','var'); M = -1; end
 if ~exist('N_sup','var'); N_sup = -1; end
 %if ~exist('wname','var'); wname = -1; end
 if ~exist('N_LBT','var'); N_LBT = -1; end
