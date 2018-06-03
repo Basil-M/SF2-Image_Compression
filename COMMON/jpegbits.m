@@ -8,7 +8,7 @@ else
 end
 
 if dwt
-    nbits = nbits + 88;
+    nbits = nbits + 32+32;
 else
     nbits = nbits + 120;
 end
