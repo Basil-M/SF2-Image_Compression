@@ -5,14 +5,8 @@ load(strcat(fname,'cmp'));
 n_bits = sum(vlc(:,2));
 fprintf('Number of bits for vlc:\t\t\t\t\t %i\n', n_bits);
 if ~exist('rise','var')
-    N = 4;
-    M = 16;
-    rise1 = 1;
-    s = sqrt(2);
-    dcbits = 16;
-    ratio2 = 0;
     %LBT DECODE
-    evalc('Z = jpegdeclbtnlev(vlc, q_opt_lbt, N, M, rise1, s, bits, huffval, dcbits, ratio,ratio2);')
+    evalc('Z = jpegdeclbtnlev(vlc, q_opt_lbt, 4, 16, 0.5, sqrt(2), bits, huffval, 16, ratio,0);');
     
     % Header information
         % ratio - float - 32 bits
@@ -40,3 +34,4 @@ end
 fprintf('Total number of bits: \t\t\t\t\t %i\n',n_bits);
 %print RMS error (same for both)
 fprintf('RMS error: \t\t\t %0.2f\n',std(Z(:) - X(:)));
+save(strcat(fname,'dec'),'Z');
