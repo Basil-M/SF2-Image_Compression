@@ -73,7 +73,7 @@ if N_LBT > 0
     m_lbt = length(Y)/2^N_LEVELS;
     q_lbt = q(1, N_LEVELS+1);
     N_LBT = min(m_lbt, 4);
-    Y(1:m_lbt, 1:m_lbt) = lbt_enc(Y(1:m_lbt, 1:m_lbt), N_LBT, q_lbt, sqrt(2), rise);
+    Y(1:m_lbt, 1:m_lbt) = lbt_enc(Y(1:m_lbt, 1:m_lbt)+128, N_LBT, q_lbt, sqrt(2), rise);
 end
 
 % Quantise to integers.

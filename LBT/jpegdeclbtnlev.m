@@ -160,7 +160,7 @@ Z = lbt_dec(Zi, N, s);
 % clip Z values to be in 0 to 255 range
 Z = Z + 128;
 Z(Z<0) = 0;
-Z(Z>255) = 0;
+Z(Z>255) = 255;
 
 %fprintf(1, 'Inverse %i x %i DCT\n', N, N);
 %C8=dct_ii(N);

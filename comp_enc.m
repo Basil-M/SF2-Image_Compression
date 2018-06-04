@@ -1,14 +1,10 @@
-%% ADD PATHS
-addpath('DWT');
-addpath('COMMON');
-addpath('LBT');
-
 %% DWT encoding
 % only optimisation is optimisation of the rise parameter
 
-rises = [0.4 0.5 0.9 1];
+rises = [0.45 0.5 1];
 rise = 0.5;
 s_dwt = -1;
+%{
 q_opt = 0;
 for r = rises
     evalc('[s,n,~,q,~] = dwt_opt_enc(X,7,-1,r);');
@@ -18,6 +14,7 @@ for r = rises
         rise = r;
     end
 end
+%}
 
 %% LBT encoding
 % only optimisation is optimisation of the ratio parameter and the qstep
@@ -54,7 +51,7 @@ if s_lbt > s_dwt
         % huffval
         % and...?
         
-        [vlc, bits, huffval, q_opt_lbt, ratio] = jpegenclbtnlev(X, q_opt_lbt, N, M, rise1, s, true, 16, ratio, ratio2);
+        [vlc, bits, huffval, q_opt_lbt, ratio] = jpegenclbtnlev(X, q_opt_lbt, 4, 16, 0.5, sqrt(2), true, 16, ratio, 0);
 
         
         

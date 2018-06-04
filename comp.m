@@ -9,15 +9,16 @@ fnames{1} = 'bridge';
 fnames{2} = 'flamingo';
 fnames{3} = 'competition';
 
-for cur_f = 1:3
+for cur_f = 2:-1:1
     clearvars -except fnames cur_f;
     fname = fnames{cur_f};
 
     load(fname);
+    X = double(X);
     fprintf('Compressing %s to 40960 bits.\n', fname);
     fname = fname(1:5);
     comp_enc;
-    clearvars -except fnames cur_f;
+    clearvars -except fnames fname cur_f;
     comp_dec;
 end
 

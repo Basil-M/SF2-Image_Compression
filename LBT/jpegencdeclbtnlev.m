@@ -10,7 +10,7 @@ q_opt = lbtjpegqnlev(X, N, M, rise1, s, opthuff, dcbits, ratio, ratio2);
 Z = jpegdeclbtnlev(vlc, q_opt, N, M, rise1, s, bits, huffval, dcbits, ratio,ratio2);
 
 % compare the decoded image to the original
-ssimval = ssim(Z,X-128); 
+ssimval = ssim(Z,X); 
 
 % rms error
 rmsError = std(X(:)-Z(:));
