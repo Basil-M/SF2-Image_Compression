@@ -40,7 +40,7 @@ for i=1:r,
   vlc = [vlc; ehuf(code,:)];
 
 % If size > 0, add in the remainder (which is not coded).
-  if rsa(i,2) > 0,
+if rsa(i,2) > 0,
     vlc = [vlc; rsa(i,[3 2])];
   end
   

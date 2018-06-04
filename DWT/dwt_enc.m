@@ -50,7 +50,7 @@ if ~exist('N_LBT','var')
     N_LBT = -1;
 end
 % make it zero mean
-%if sum(X(:) > 128) ~= 0; X  = X - 128; end
+X = X - 128;
 %if ((opthuff==true) && (nargout==1)) error('Must output bits and huffval if optimising huffman tables'); end
 N = 2^N_LEVELS;
 % DWT on input image X.
@@ -69,7 +69,7 @@ end
 % end
 
 if N_LBT > 0
-    q(1,N_LEVELS+1) = q(1,N_LEVELS+1);
+    q(1,N_LEVELS+1) = 0;%q(1,N_LEVELS+1);
     m_lbt = length(Y)/2^N_LEVELS;
     q_lbt = q(1, N_LEVELS+1);
     N_LBT = min(m_lbt, 4);

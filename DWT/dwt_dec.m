@@ -176,7 +176,7 @@ else
 end
 
 if N_LBT > -1
-    q(1,N_LEVELS+1) = q(1,N_LEVELS+1)*1;
+    q(1,N_LEVELS+1) = 0;%q(1,N_LEVELS+1)*1;
 end
 
 if ~exist('rise')

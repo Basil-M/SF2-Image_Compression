@@ -2,7 +2,7 @@
 function Y =nlevdwt(X, N)
 m = size(X, 1); 
 % not sure this is correct place to subtract 128 but gives good image
-Y = dwt(X-128);
+Y = dwt(X);%dwt(X-128);
 i = 1;
 while i<N
     m=m/2;

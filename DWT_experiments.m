@@ -111,7 +111,7 @@ draw(beside(beside(s_draw,x_draw), s_draw_l));
 S_MAT = -Inf*ones([2,7]);
 for n = 1:7
     [S_MAT(1,n),~,~,~,~] = dwt_opt_enc(X, n);
-    [S_MAT(2,n),~,~,~,~] = dwt_opt_enc(X, n, -1, 1, 0, 1);
+    [S_MAT(2,n),~,~,~,~] = dwt_opt_enc(X, n, -1, 0.5, 0, 1);
 end
 
 plot(S_MAT(1,:));
