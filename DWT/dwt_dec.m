@@ -204,8 +204,9 @@ end
 
 
 Z = nlevidwt(Zi, N_LEVELS);
-
-%if(sum(Z(:) > 128)) == 0
 Z = Z + 128;
-%end
+Z(Z<0) = 0;
+Z(Z>255) = 255;
+%Z = Z - min(Z(:));
+%Z = 255*Z/max(Z(:));
 return
